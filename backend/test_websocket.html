@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      #messages {
+        border: 1px solid #ccc;
+        height: 300px;
+        overflow-y: scroll;
+        padding: 10px;
+        margin: 10px 0;
+      }
+      .message {
+        padding: 5px;
+        margin: 5px 0;
+        background: #f0f0f0;
+        border-radius: 5px;
+      }
+      input,
+      button {
+        padding: 10px;
+        margin: 5px;
+      }
+      #status {
+        padding: 10px;
+        margin: 10px 0;
+        font-weight: bold;
+      }
+      .connected {
+        color: green;
+      }
+      .disconnected {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WebSocket Chat Test</h1>
+
+    <div id="status" class="disconnected">Status: Disconnected</div>
+
+    <div>
+      <label>JWT Token:</label><br />
+      <input
+        type="text"
+        id="token"
+        placeholder="Paste your JWT token here"
+        style="width: 500px"
+      />
+      <button onclick="connect()">Connect</button>
+    </div>
+
+    <div>
+      <label>Conversation ID:</label>
+      <input type="number" id="conversationId" placeholder="1" />
+
+      <label>Message:</label>
+      <input type="text" id="messageText" placeholder="Type a message" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <div id="messages"></div>
+
+    <script>
+      let ws = null;
+      const messagesDiv = document.getElementById("messages");
+      const statusDiv = document.getElementById("status");
+
+      function connect() {
+        const token = document.getElementById("token").value;
+        if (!token) {
+          alert("Please enter a JWT token");
+          return;
+        }
+
+        // Close existing connection
+        if (ws) {
+          ws.close();
+        }
+
+        // Connect to WebSocket
+        ws = new WebSocket(`ws://127.0.0.1:8000/ws/chat/?token=${token}`);
+
+        ws.onopen = () => {
+          statusDiv.textContent = "Status: Connected ✓";
+          statusDiv.className = "connected";
+          addMessage("System", "Connected to chat server");
+        };
+
+        ws.onclose = () => {
+          statusDiv.textContent = "Status: Disconnected ✗";
+          statusDiv.className = "disconnected";
+          addMessage("System", "Disconnected from chat server");
+        };
+
+        ws.onerror = (error) => {
+          console.error("WebSocket error:", error);
+          addMessage("System", "Connection error");
+        };
+
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log("Received:", data);
+
+          if (data.type === "chat_message") {
+            const msg = data.message;
+            addMessage(msg.sender.username, msg.text);
+          } else if (data.type === "typing_indicator") {
+            addMessage(
+              "System",
+              `${data.username} is ${
+                data.is_typing ? "typing..." : "stopped typing"
+              }`
+            );
+          } else {
+            addMessage("System", JSON.stringify(data));
+          }
+        };
+      }
+
+      function sendMessage() {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          alert("Not connected! Click Connect first.");
+          return;
+        }
+
+        const conversationId = parseInt(
+          document.getElementById("conversationId").value
+        );
+        const text = document.getElementById("messageText").value;
+
+        if (!conversationId || !text) {
+          alert("Please enter conversation ID and message");
+          return;
+        }
+
+        const message = {
+          type: "chat_message",
+          conversation_id: conversationId,
+          text: text,
+        };
+
+        ws.send(JSON.stringify(message));
+        document.getElementById("messageText").value = "";
+      }
+
+      function addMessage(sender, text) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "message";
+        msgDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+        messagesDiv.appendChild(msgDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    </script>
+  </body>
+</html>

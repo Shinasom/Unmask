@@ -25,8 +25,7 @@ export default function Feed() {
       setLoading(true);
       try {
         const photosResponse = await api.get('/api/photos/');
-        const reversedPosts = [...photosResponse.data].reverse();
-        setPosts(reversedPosts);
+        setPosts(photosResponse.data);  // No reverse needed - backend handles ordering
       } catch (error) {
         console.error("Failed to fetch feed data:", error);
       } finally {

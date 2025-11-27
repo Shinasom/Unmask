@@ -11,7 +11,7 @@ SECRET_KEY = "django-insecure-^v=%8#(nml1s8!x5cwi_tz%r%+d4tb%9s*w$m=pn5(!*(1q+mu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.42', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.42', 'localhost', '127.0.0.1','*']
 
 
 # Application definition
@@ -28,11 +28,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'drf_spectacular',
+    'channels',  # ADD THIS
 
     # My Apps
     'users.apps.UsersConfig',
     'photos.apps.PhotosConfig',
     'interactions.apps.InteractionsConfig',
+    'direct_chat.apps.DirectChatConfig',  # ADD THIS
 ]
 
 MIDDLEWARE = [
@@ -128,7 +130,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://192.168.1.42:3000",
+    "http://127.0.0.1:3000",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # --- DJANGO REST FRAMEWORK ---
 REST_FRAMEWORK = {
@@ -195,4 +200,17 @@ SPECTACULAR_SETTINGS = {
         'displayOperationId': True,
     },
     'COMPONENT_SPLIT_REQUEST': True
+}
+
+
+# --- ASGI / CHANNELS CONFIGURATION ---
+ASGI_APPLICATION = 'core.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
 }

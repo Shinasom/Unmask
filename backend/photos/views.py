@@ -8,9 +8,17 @@ class PhotoViewSet(viewsets.ModelViewSet):
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update`, and `destroy` actions for Photos.
     """
-    queryset = Photo.objects.all()
     serializer_class = PhotoSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Return photos ordered by newest first, with optimized queries
+        """
+        return Photo.objects.select_related('uploader').prefetch_related(
+            'likes__user',
+            'comments__user'
+        ).order_by('-created_at')  # Newest first!
 
     def perform_create(self, serializer):
         """
@@ -45,7 +53,7 @@ class ConsentRequestViewSet(viewsets.ModelViewSet):
         behavior of showing all objects.
         """
         user = self.request.user
-        return ConsentRequest.objects.filter(requested_user=user)
+        return ConsentRequest.objects.filter(requested_user=user).order_by('-created_at')
 
     def perform_update(self, serializer):
         """

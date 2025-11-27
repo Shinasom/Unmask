@@ -6,6 +6,7 @@
 import { GeistSans } from "geist/font/sans";
 import { Playfair_Display } from "next/font/google";
 import { AuthProvider } from '@/context/AuthContext';
+import { ChatProvider } from '@/context/ChatContext'; 
 import "./globals.css";
 
 // Configure the font for the logo from your mockup
@@ -28,7 +29,9 @@ export default function RootLayout({ children }) {
         className={`${GeistSans.variable} ${playfair.variable} antialiased bg-background`}
       >
         <AuthProvider>
+          <ChatProvider>
           {children}
+          </ChatProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,8 +1,9 @@
-# backend/photos/services.py (FINAL OPTIMIZED VERSION)
+# backend/photos/services.py (FINAL OPTIMIZED VERSION - WITH GAUSSIAN BLUR)
 
 import face_recognition
 import numpy as np
-from PIL import Image, ImageDraw
+# Import ImageFilter for Gaussian Blur
+from PIL import Image, ImageDraw, ImageFilter
 from django.core.files import File
 from django.db.models import Q
 import logging
@@ -18,9 +19,8 @@ logger = logging.getLogger('photos')
 
 def _regenerate_public_image(photo: Photo):
     """
-    This is the "source of truth" function, now optimized to use the DetectedFace table
-    instead of re-running face detection.
-    This fixes any seam/offset/artifact issues from re-saving.
+    This is the "source of truth" function, optimized to use the DetectedFace table.
+    UPDATED: Now uses Gaussian Blur instead of a black box.
     """
     logger.info(f"[Regenerate] START: Regenerating public_image for photo {photo.id}.")
     start_time = time.time()
@@ -29,7 +29,8 @@ def _regenerate_public_image(photo: Photo):
         # 1. Load the pristine original image
         original = Image.open(photo.original_image.path)
         public_image = original.convert('RGB')
-        draw = ImageDraw.Draw(public_image)
+        # We no longer need ImageDraw
+        # draw = ImageDraw.Draw(public_image)
 
         # 2. Get all detected faces *from the database*
         all_detected_faces = photo.detected_faces.all()
@@ -37,8 +38,6 @@ def _regenerate_public_image(photo: Photo):
 
         if not all_detected_faces:
             logger.warning(f"[Regenerate] Photo {photo.id}: No detected faces found in DB. Image will be public.")
-            # No faces, so just save a copy of the original as the public image
-            # (This logic is same as step 6)
         
         # 3. Get all *approved* consent requests for this photo
         approved_users_ids = list(
@@ -75,16 +74,30 @@ def _regenerate_public_image(photo: Photo):
 
         logger.info(f"[Regenerate] Photo {photo.id}: Total={len(all_detected_faces)}, Unmasked={len(all_detected_faces) - len(faces_to_mask)}, Masked={len(faces_to_mask)}.")
 
-        # 5. Draw all necessary masks
+        # --- STEP 5: (NEW) Apply Gaussian Blur to all faces that need masking ---
         for bounding_box_str in faces_to_mask:
             try:
                 coords = [int(c) for c in bounding_box_str.split(',')]
                 left, top, right, bottom = coords
-                draw.rectangle(((left, top), (right, bottom)), outline=(0, 0, 0), fill=(0, 0, 0))
+                
+                # Create the box tuple (left, top, right, bottom)
+                box = (left, top, right, bottom)
+                
+                # Crop the face region
+                face_crop = public_image.crop(box)
+                
+                # Apply a strong Gaussian blur
+                # We can adjust the radius later if we want it stronger or weaker
+                blurred_face = face_crop.filter(ImageFilter.GaussianBlur(radius=20))
+                
+                # Paste the blurred face back into the main image
+                public_image.paste(blurred_face, box)
+                
             except Exception as e:
-                logger.error(f"[Regenerate] Photo {photo.id}: Error parsing bounding box '{bounding_box_str}': {e}")
+                logger.error(f"[Regenerate] Photo {photo.id}: Error parsing or blurring bounding box '{bounding_box_str}': {e}")
 
-        del draw
+        # del draw (No longer need this)
+        # --- END OF NEW STEP 5 ---
 
         # 6. Save the final image to the public_image field
         from io import BytesIO
@@ -236,3 +249,4 @@ def unmask_approved_face(consent_request_id: int):
         logger.error(f"[Unmasking] FAILED: Photo not found for request {consent_request_id}.")
     except Exception as e:
         logger.error(f"[Unmasking] FAILED: An unexpected error occurred for request {consent_request_id}. Error: {e}", exc_info=True)
+
