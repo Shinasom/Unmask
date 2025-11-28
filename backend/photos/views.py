@@ -1,7 +1,13 @@
-from rest_framework import viewsets, permissions
+# backend/photos/views.py
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
 from .models import Photo, ConsentRequest
 from .serializers import PhotoSerializer, ConsentRequestSerializer
 from . import services
+import logging
+
+logger = logging.getLogger('photos')
+
 
 class PhotoViewSet(viewsets.ModelViewSet):
     """
@@ -36,6 +42,55 @@ class PhotoViewSet(viewsets.ModelViewSet):
         
         # Now, call our service function with the new photo's ID
         services.process_photo_for_faces(photo_id=photo_instance.id)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete a photo (only by owner).
+        This also handles cleanup of physical files and cascading deletes.
+        """
+        photo = self.get_object()
+        
+        # Security check: Only the uploader can delete their photo
+        if photo.uploader != request.user:
+            logger.warning(
+                f"User {request.user.username} attempted to delete photo {photo.id} "
+                f"owned by {photo.uploader.username}"
+            )
+            return Response(
+                {'error': 'You can only delete your own photos'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        logger.info(f"Deleting photo {photo.id} by {request.user.username}")
+        
+        # Delete physical files from storage
+        if photo.original_image:
+            try:
+                photo.original_image.delete(save=False)
+                logger.debug(f"Deleted original_image for photo {photo.id}")
+            except Exception as e:
+                logger.error(f"Failed to delete original_image for photo {photo.id}: {e}")
+        
+        if photo.public_image:
+            try:
+                photo.public_image.delete(save=False)
+                logger.debug(f"Deleted public_image for photo {photo.id}")
+            except Exception as e:
+                logger.error(f"Failed to delete public_image for photo {photo.id}: {e}")
+        
+        # Delete from database (this will cascade to:
+        # - ConsentRequest objects
+        # - DetectedFace objects
+        # - Like objects
+        # - Comment objects
+        photo.delete()
+        
+        logger.info(f"Successfully deleted photo {photo.id}")
+        
+        return Response(
+            {'message': 'Photo deleted successfully'},
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 class ConsentRequestViewSet(viewsets.ModelViewSet):
