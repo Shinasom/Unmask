@@ -1,10 +1,11 @@
 // =======================================================================
 // /src/components/feed/Post.jsx
-// FIXED: More responsive post card
+// UPDATED: Added clickable uploader profile navigation
 // =======================================================================
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
@@ -12,6 +13,7 @@ import CommentModal from './CommentModal';
 
 export default function Post({ post, uploader }) {
   const { user } = useAuth();
+  const router = useRouter();
   const [likes, setLikes] = useState(post.likes || []);
   const [comments, setComments] = useState(post.comments || []);
   const [isCommentModalOpen, setCommentModalOpen] = useState(false);
@@ -37,6 +39,10 @@ export default function Post({ post, uploader }) {
     setComments([...comments, newComment]);
   };
 
+  const handleProfileClick = () => {
+    router.push(`/profile/${uploader.username}`);
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -59,14 +65,18 @@ export default function Post({ post, uploader }) {
             <img 
               src={uploader.profile_pic} 
               alt={uploader.username} 
-              className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover ring-2 ring-primary/20"
+              onClick={handleProfileClick}
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover ring-2 ring-primary/20 cursor-pointer hover:ring-primary/40 transition-all"
               onError={(e) => { 
                 e.target.onerror = null; 
                 e.target.src = `https://placehold.co/40x40/556B2F/FFFFFF?text=${uploader.username?.charAt(0).toUpperCase() || 'U'}`; 
               }}
             />
             <div>
-              <p className="font-semibold text-sm text-gray-900 hover:text-primary cursor-pointer transition-colors">
+              <p 
+                onClick={handleProfileClick}
+                className="font-semibold text-sm text-gray-900 hover:text-primary cursor-pointer transition-colors"
+              >
                 {uploader.username}
               </p>
               <p className="text-xs text-gray-500">
@@ -155,7 +165,10 @@ export default function Post({ post, uploader }) {
           {/* Caption */}
           {post.caption && (
             <div className="text-sm">
-              <span className="font-semibold text-gray-900 mr-2">
+              <span 
+                onClick={handleProfileClick}
+                className="font-semibold text-gray-900 mr-2 hover:text-primary cursor-pointer transition-colors"
+              >
                 {uploader.username}
               </span>
               <span className="text-gray-700">{post.caption}</span>

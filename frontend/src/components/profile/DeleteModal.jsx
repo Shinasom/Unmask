@@ -12,14 +12,23 @@ export default function DeleteModal({ photoId, onClose, onConfirm }) {
   const handleDelete = async () => {
     setIsDeleting(true);
     setError('');
-
+    
     try {
-      await api.delete(`/api/photos/${photoId}/`);
-      onConfirm();
+      const response = await api.delete(`/api/photos/${photoId}/`);
+      // DELETE returns 204 No Content on success
+      onConfirm(photoId);
+      onClose();
     } catch (err) {
-      console.error('Delete failed:', err);
-      setError(err.response?.data?.error || 'Failed to delete. Please try again.');
-      setIsDeleting(false);
+      console.error('Delete error:', err);
+      
+      // 204 means success but no content - don't treat as error
+      if (err.response?.status === 204) {
+        onConfirm(photoId);
+        onClose();
+      } else {
+        setError(err.response?.data?.error || 'Failed to delete. Please try again.');
+        setIsDeleting(false);
+      }
     }
   };
 

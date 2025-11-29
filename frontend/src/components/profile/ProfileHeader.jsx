@@ -1,7 +1,6 @@
-// frontend/src/components/profile/ProfileHeader.jsx
 "use client";
 
-import { Settings, UserPlus, UserCheck } from "lucide-react";
+import { Settings, UserPlus, UserCheck, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ProfileHeader({
@@ -79,26 +78,35 @@ export default function ProfileHeader({
                 </button>
               </>
             ) : (
-              <button
-                onClick={onFollowToggle}
-                className={`flex items-center gap-2 px-8 py-1.5 text-sm font-semibold rounded-lg transition-all ${
-                  isFollowing
-                    ? "text-gray-900 bg-white border border-gray-300 hover:bg-gray-50"
-                    : "text-white bg-[#0095F6] hover:bg-[#0082D9]"
-                }`}
-              >
-                {isFollowing ? (
-                  <>
-                    <UserCheck className="w-4 h-4" />
-                    Following
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-4 h-4" />
-                    Follow
-                  </>
-                )}
-              </button>
+              <>
+                <button
+                  onClick={onFollowToggle}
+                  className={`flex items-center gap-2 px-8 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+                    isFollowing
+                      ? "text-gray-900 bg-white border border-gray-300 hover:bg-gray-50"
+                      : "text-white bg-[#0095F6] hover:bg-[#0082D9]"
+                  }`}
+                >
+                  {isFollowing ? (
+                    <>
+                      <UserCheck className="w-4 h-4" />
+                      Following
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      Follow
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => router.push(`/messages?user=${userProfile?.username}`)}
+                  className="flex items-center gap-2 px-6 py-1.5 text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Message
+                </button>
+              </>
             )}
           </div>
         </div>

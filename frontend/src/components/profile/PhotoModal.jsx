@@ -258,7 +258,7 @@ export default function PhotoModal({ photo, isOwnProfile, onClose, onDelete }) {
         <DeleteModal
           photoId={photo.id}
           onClose={() => setShowDeleteModal(false)}
-          onDeleteSuccess={handleDeleteSuccess}
+          onConfirm={handleDeleteSuccess}
         />
       )}
     </div>
