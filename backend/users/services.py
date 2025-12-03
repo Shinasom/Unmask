@@ -1,14 +1,22 @@
 # backend/users/services.py
 
-import face_recognition
 import numpy as np
+import cv2
+from insightface.app import FaceAnalysis
 import logging
+import os
 
 logger = logging.getLogger('users')
 
+# Initialize the model ONCE (Global singleton)
+# 'buffalo_l' is more accurate and robust for profile pictures.
+# providers=['CPUExecutionProvider'] ensures it runs efficiently on your CPU.
+app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'])
+app.prepare(ctx_id=0, det_size=(640, 640))
+
 def extract_face_encoding(user):
     """
-    Extract and save face encoding from user's profile picture.
+    Extract and save face encoding from user's profile picture using InsightFace.
     This should be called when a user uploads/updates their profile pic.
     
     Args:
@@ -24,37 +32,54 @@ def extract_face_encoding(user):
         return False
     
     try:
-        # Load the profile picture
-        profile_pic_path = user.profile_pic.path
-        image = face_recognition.load_image_file(profile_pic_path)
+        # 1. Verify file existence before trying to load
+        # This allows us to catch the specific "File not found" error logic you had before
+        img_path = user.profile_pic.path
+        if not os.path.exists(img_path):
+            logger.error(f"Profile picture file not found for user {user.username}")
+            user.encoding_status = 'ERROR'
+            user.save()
+            return False
+
+        # 2. Load the profile picture using OpenCV
+        img = cv2.imread(img_path)
         
-        # Extract face encodings
-        encodings = face_recognition.face_encodings(image)
+        if img is None:
+            # Fallback if cv2 fails to read a file that exists (corrupt, format, etc)
+            logger.error(f"Error reading image file for user {user.username}")
+            user.encoding_status = 'ERROR'
+            user.save()
+            return False
         
-        if len(encodings) == 0:
+        # 3. Get faces (InsightFace handles detection & alignment internally)
+        faces = app.get(img)
+        
+        if len(faces) == 0:
             logger.warning(f"No face detected in profile pic for user {user.username}")
             user.encoding_status = 'NO_FACE'
             user.face_encoding = None
             user.save()
             return False
-        
-        if len(encodings) > 1:
+            
+        # 4. Handle Multiple Faces (Restoring your original logging logic)
+        if len(faces) > 1:
             logger.warning(f"Multiple faces detected for user {user.username}, using first one")
+            
+        # 5. Sort by size (largest face is likely the user)
+        # bbox is [x1, y1, x2, y2], so we calculate area (w * h)
+        faces = sorted(faces, key=lambda x: (x.bbox[2]-x.bbox[0]) * (x.bbox[3]-x.bbox[1]), reverse=True)
         
-        # Get the first encoding and convert numpy array to list for JSON storage
-        encoding = encodings[0]
-        user.face_encoding = encoding.tolist()
+        # 6. Get the embedding of the largest face
+        # InsightFace returns a numpy array, we convert to list for JSON storage
+        encoding = faces[0].embedding.tolist()
+        
+        user.face_encoding = encoding
         user.encoding_status = 'SUCCESS'
         user.save()
         
         logger.info(f"Successfully extracted face encoding for user {user.username}")
         return True
         
-    except FileNotFoundError:
-        logger.error(f"Profile picture file not found for user {user.username}")
-        user.encoding_status = 'ERROR'
-        user.save()
-        return False
     except Exception as e:
         logger.error(f"Error extracting face encoding for user {user.username}: {str(e)}")
         user.encoding_status = 'ERROR'
@@ -95,7 +120,8 @@ def get_face_encodings_dict():
     for user in users:
         try:
             # Convert JSON list back to numpy array
-            encoding = np.array(user.face_encoding)
+            # Ensure float32 type for optimal InsightFace calculations
+            encoding = np.array(user.face_encoding, dtype=np.float32)
             encodings.append(encoding)
             user_list.append(user)
         except Exception as e:

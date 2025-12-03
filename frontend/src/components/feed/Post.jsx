@@ -1,7 +1,4 @@
-// =======================================================================
-// /src/components/feed/Post.jsx
-// UPDATED: Added clickable uploader profile navigation
-// =======================================================================
+// frontend/src/components/feed/Post.jsx
 'use client';
 
 import { useState } from 'react';
@@ -18,21 +15,47 @@ export default function Post({ post, uploader }) {
   const [comments, setComments] = useState(post.comments || []);
   const [isCommentModalOpen, setCommentModalOpen] = useState(false);
 
+  // Early returns for invalid props
   if (!post || !post.public_image || !uploader) {
     return null;
   }
 
-  const hasLiked = likes.some(like => like.user.id === user.id);
+  // ✅ Safe check for hasLiked
+  const hasLiked = user 
+    ? likes.some(like => like.user?.id === user.id)
+    : false;
 
+  // ✅ Safe like handler
   const handleLike = async () => {
-    if (hasLiked) {
-      const like = likes.find(like => like.user.id === user.id);
-      await api.delete(`/api/likes/${like.id}/`);
-      setLikes(likes.filter(l => l.id !== like.id));
-    } else {
-      const response = await api.post('/api/likes/', { photo: post.id });
-      setLikes([...likes, response.data]);
+    if (!user) {
+      router.push('/login');
+      return;
     }
+
+    try {
+      if (hasLiked) {
+        const like = likes.find(like => like.user.id === user.id);
+        if (like) {
+          await api.delete(`/api/likes/${like.id}/`);
+          setLikes(likes.filter(l => l.id !== like.id));
+        }
+      } else {
+        const response = await api.post('/api/likes/', { photo: post.id });
+        setLikes([...likes, response.data]);
+      }
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+      // Optionally show error toast
+    }
+  };
+
+  // ✅ Safe comment handler
+  const handleOpenComments = () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setCommentModalOpen(true);
   };
 
   const handleCommentAdded = (newComment) => {
@@ -121,7 +144,7 @@ export default function Post({ post, uploader }) {
                 />
               </button>
               <button 
-                onClick={() => setCommentModalOpen(true)}
+                onClick={handleOpenComments}
                 className="p-1 md:p-2 rounded-full hover:bg-gray-100 transition-colors group"
               >
                 <MessageCircle 
@@ -150,7 +173,7 @@ export default function Post({ post, uploader }) {
               {likes.length === 1 ? (
                 <p className="text-sm">
                   <span className="font-semibold text-gray-900">
-                    {likes[0].user.username}
+                    {likes[0].user?.username || 'Someone'}
                   </span>
                   <span className="text-gray-600"> liked this</span>
                 </p>
@@ -180,7 +203,7 @@ export default function Post({ post, uploader }) {
             <div className="space-y-1 md:space-y-2">
               {comments.length > 2 && (
                 <button 
-                  onClick={() => setCommentModalOpen(true)}
+                  onClick={handleOpenComments}
                   className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   View all {comments.length} comments
@@ -190,7 +213,7 @@ export default function Post({ post, uploader }) {
               {comments.slice(0, 2).map(comment => (
                 <div key={comment.id} className="text-sm">
                   <span className="font-semibold text-gray-900 mr-2">
-                    {comment.user.username}
+                    {comment.user?.username || 'Unknown'}
                   </span>
                   <span className="text-gray-700">{comment.text}</span>
                 </div>
@@ -200,7 +223,7 @@ export default function Post({ post, uploader }) {
 
           {/* Add Comment */}
           <button 
-            onClick={() => setCommentModalOpen(true)}
+            onClick={handleOpenComments}
             className="w-full text-left text-sm text-gray-400 hover:text-gray-600 transition-colors pt-2 border-t border-gray-100"
           >
             Add a comment...
@@ -209,7 +232,7 @@ export default function Post({ post, uploader }) {
       </article>
 
       {/* Comment Modal */}
-      {isCommentModalOpen && (
+      {isCommentModalOpen && user && (
         <CommentModal
           post={post}
           onClose={() => setCommentModalOpen(false)}
