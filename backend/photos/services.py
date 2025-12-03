@@ -75,6 +75,7 @@ def _regenerate_public_image(photo: Photo):
         logger.info(f"[Regenerate] Photo {photo.id}: Total={len(all_detected_faces)}, Unmasked={len(all_detected_faces) - len(faces_to_mask)}, Masked={len(faces_to_mask)}.")
 
         # 5. Apply Gaussian Blur to masked faces
+#        5. Apply Gaussian Blur to masked faces
         for bounding_box_str in faces_to_mask:
             try:
                 # Parse "left,top,right,bottom"
@@ -89,13 +90,23 @@ def _regenerate_public_image(photo: Photo):
                 if left < 0 or top < 0 or right > img_w or bottom > img_h:
                     continue
 
+                # --- NEW LOGIC START ---
+                # Calculate face dimensions
+                face_width = right - left
+                face_height = bottom - top
+                
+                # Calculate dynamic radius: roughly 25% of the face size
+                # We enforce a minimum of 30 to ensure even small faces are heavily blurred
+                blur_radius = max(30, min(face_width, face_height) // 4)
+                # --- NEW LOGIC END ---
+
                 # Crop, Blur, Paste
                 face_crop = public_image.crop(box)
-                blurred_face = face_crop.filter(ImageFilter.GaussianBlur(radius=20))
+                blurred_face = face_crop.filter(ImageFilter.GaussianBlur(radius=blur_radius))
                 public_image.paste(blurred_face, box)
                 
             except Exception as e:
-                logger.error(f"[Regenerate] Photo {photo.id}: Error parsing or blurring bounding box '{bounding_box_str}': {e}")
+                logger.error(f"[Regenerate] Error blurring face {bounding_box_str}: {e}")       
 
         # 6. Save result
         from io import BytesIO
