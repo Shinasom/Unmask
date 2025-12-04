@@ -3,8 +3,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
-from .models import CustomUser
+from .models import CustomUser, Follow
 from .services import extract_face_encoding
+
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
@@ -21,7 +22,7 @@ class CustomUserAdmin(UserAdmin):
     # Add face encoding fields to the admin form
     fieldsets = UserAdmin.fieldsets + (
         ('Profile & Face Recognition', {
-            'fields': ('bio', 'profile_pic', 'encoding_status')
+            'fields': ('bio', 'profile_pic', 'encoding_status', 'face_sharing_mode')
         }),
     )
     
@@ -68,5 +69,26 @@ class CustomUserAdmin(UserAdmin):
             f"Recomputed encodings: {success_count} successful, {fail_count} failed"
         )
     recompute_face_encodings.short_description = "Recompute face encodings for selected users"
+
+
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    """
+    Admin interface for Follow relationships.
+    """
+    list_display = ['id', 'follower', 'following', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['follower__username', 'following__username']
+    raw_id_fields = ['follower', 'following']
+    date_hierarchy = 'created_at'
+    
+    def get_queryset(self, request):
+        """Optimize queries."""
+        return super().get_queryset(request).select_related('follower', 'following')
+    
+    def has_add_permission(self, request):
+        """Users should follow through the app, not admin."""
+        return request.user.is_superuser
+
 
 admin.site.register(CustomUser, CustomUserAdmin)
