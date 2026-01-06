@@ -16,7 +16,8 @@ from .models import Photo, ConsentRequest, DetectedFace
 logger = logging.getLogger('photos')
 
 # Initialize InsightFace (Global)
-app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'])
+# The reliable, crash-proof setting
+app = FaceAnalysis(name='buffalo_l', providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
 app.prepare(ctx_id=0, det_size=(640, 640))
 
 def _regenerate_public_image(photo: Photo):

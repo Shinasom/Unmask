@@ -11,7 +11,8 @@ logger = logging.getLogger('users')
 # Initialize the model ONCE (Global singleton)
 # 'buffalo_l' is more accurate and robust for profile pictures.
 # providers=['CPUExecutionProvider'] ensures it runs efficiently on your CPU.
-app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'])
+# The reliable, crash-proof setting
+app = FaceAnalysis(name='buffalo_l', providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
 app.prepare(ctx_id=0, det_size=(640, 640))
 
 def extract_face_encoding(user):

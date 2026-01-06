@@ -1,6 +1,4 @@
-
 # Unmask - Privacy-First Social Media
-
 
 **Reveal on Your Terms**
 
@@ -31,11 +29,13 @@ Traditional social media platforms share photos of you without your permission. 
 ## ✨ Key Features
 
 ### 🛡️ Privacy First
+
 - **Automatic face masking** - All detected faces are masked until consent is given
 - **Granular consent control** - Review each photo individually before approval
 - **Privacy modes** - Choose between "Require Consent" (default) or "Public" sharing
 
 ### 🎨 Modern Social Experience
+
 - Photo sharing with filters and editing
 - Like and comment on posts
 - Real-time consent request notifications
@@ -43,6 +43,7 @@ Traditional social media platforms share photos of you without your permission. 
 - Stories/moments feature
 
 ### 🔐 Security & Performance
+
 - JWT-based authentication
 - Pre-computed face encodings for fast recognition
 - Role-based access control
@@ -53,6 +54,7 @@ Traditional social media platforms share photos of you without your permission. 
 ## 🏗️ Architecture
 
 ### Backend (Django REST Framework)
+
 ```
 backend/
 ├── core/           # Project configuration
@@ -62,6 +64,7 @@ backend/
 ```
 
 **Key Technologies:**
+
 - Python 3.11+
 - Django 4.2 & Django REST Framework
 - PostgreSQL database
@@ -69,6 +72,7 @@ backend/
 - JWT authentication
 
 ### Frontend (Next.js)
+
 ```
 frontend/
 ├── src/
@@ -79,6 +83,7 @@ frontend/
 ```
 
 **Key Technologies:**
+
 - React 19 & Next.js 15.4
 - Tailwind CSS v4
 - Axios for API communication
@@ -107,6 +112,7 @@ cd unmask
 ### 2️⃣ Backend Setup
 
 #### Create Virtual Environment
+
 ```bash
 cd backend
 python -m venv venv
@@ -119,6 +125,7 @@ source venv/bin/activate
 ```
 
 #### Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -191,6 +198,7 @@ cd frontend
 ```
 
 #### Install Dependencies
+
 ```bash
 npm install
 ```
@@ -229,6 +237,7 @@ Frontend will be available at **http://localhost:3000/**
 ### Key Workflows
 
 #### Uploading Photos
+
 1. Click the **Upload** button (+ icon)
 2. Select an image from your device
 3. Add caption, location, tags (optional)
@@ -236,12 +245,14 @@ Frontend will be available at **http://localhost:3000/**
 5. Click **Share Post**
 
 #### Managing Consent Requests
+
 1. Navigate to **Consent** tab
 2. Review pending requests
 3. **Approve** or **Deny** each request
 4. View history of approved/denied requests
 
 #### Privacy Settings
+
 1. Go to **Settings**
 2. Choose your face sharing mode:
    - **Require Consent** (recommended) - Review each photo
@@ -254,6 +265,7 @@ Frontend will be available at **http://localhost:3000/**
 ### Useful Commands
 
 #### Backend
+
 ```bash
 # Run migrations
 python manage.py migrate
@@ -272,15 +284,21 @@ python manage.py compute_face_encodings --all
 
 # Clean test data (development only!)
 python cleanup_script.py
+
+# run with daphne
+daphne -b 127.0.0.1 -p 8000 core.asgi:application
+
 ```
 
 #### Frontend
+
 ```bash
 # Start development server
 npm run dev
 
 # Build for production
 npm run build
+
 
 # Start production server
 npm start
@@ -292,6 +310,7 @@ npm run lint
 ### API Documentation
 
 Once the backend is running, visit:
+
 - **Swagger UI**: http://127.0.0.1:8000/api/docs/
 - **ReDoc**: http://127.0.0.1:8000/api/redoc/
 
@@ -337,7 +356,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👥 Authors
 
 - **Shinas Om** [GitHub](https://github.com/Shinasom) [Linkedin](https://www.linkedin.com/in/shinasom/)
-  
 
 ---
 
@@ -350,7 +368,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - All contributors and testers
 
 ---
-
 
 ## 📊 Project Status
 
