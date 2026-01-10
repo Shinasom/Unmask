@@ -127,11 +127,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # For development, we can allow all origins. In production, we'd lock this down.
 # --- CORS (FOR REACT FRONTEND) ---
 # Whitelist the frontend origins that are allowed to make requests to this API
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://192.168.1.42:3000",
-    "http://127.0.0.1:3000",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://192.168.1.42:3000",
+#     "http://127.0.0.1:3000",
+# ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 

@@ -1,12 +1,12 @@
 # backend/photos/models.py
 from django.conf import settings
 from django.db import models
+from django.core.files.base import ContentFile # For saving memory-buffer as file
+from PIL import Image
+import io
+import os
 
 class Photo(models.Model):
-    """
-    Replaces the old 'post' model.
-    This model now supports a non-destructive image workflow.
-    """
     uploader = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
@@ -16,6 +16,39 @@ class Photo(models.Model):
     public_image = models.ImageField(upload_to='photos/public/%Y/%m/%d/', null=True, blank=True)
     caption = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        """
+        Optimizes the image by resizing to a max of 2000px and 
+        compressing it before saving.
+        """
+        if self.original_image:
+            # 1. Open the image
+            img = Image.open(self.original_image)
+            
+            # Convert to RGB if it's RGBA (transparency can cause JPEG errors)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            # 2. Resize only if larger than 2000px
+            max_size = 3000
+            if img.width > max_size or img.height > max_size:
+                # thumbnail() maintains the aspect ratio automatically
+                img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+
+            # 3. Save the result to a memory buffer
+            buffer = io.BytesIO()
+            img.save(buffer, format='JPEG', quality=90, optimize=True)
+            
+            # 4. Overwrite the original_image field with the optimized version
+            file_name = os.path.basename(self.original_image.name)
+            self.original_image.save(
+                file_name, 
+                ContentFile(buffer.getvalue()), 
+                save=False
+            )
+    
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Photo by {self.uploader.username} on {self.created_at.strftime('%Y-%m-%d')}"
