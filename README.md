@@ -1,8 +1,10 @@
+# this is the version that i submitted as a final year project 
+
 # Unmask - Privacy-First Social Media
 
 **Reveal on Your Terms**
 
-this is the version that i submitted as a final year project 
+#this is the version that i submitted as a final year project 
 
 A consent-driven social media platform that puts users in control of their digital identity. Using facial recognition technology, Unmask automatically masks faces in photos and requires explicit approval before revealing them.
 
