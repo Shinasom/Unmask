@@ -31,14 +31,14 @@ class Photo(models.Model):
                 img = img.convert("RGB")
 
             # 2. Resize only if larger than 2000px
-            max_size = 2000
+            max_size = 3000
             if img.width > max_size or img.height > max_size:
                 # thumbnail() maintains the aspect ratio automatically
                 img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
 
             # 3. Save the result to a memory buffer
             buffer = io.BytesIO()
-            img.save(buffer, format='JPEG', quality=85, optimize=True)
+            img.save(buffer, format='JPEG', quality=90, optimize=True)
             
             # 4. Overwrite the original_image field with the optimized version
             file_name = os.path.basename(self.original_image.name)
@@ -47,7 +47,7 @@ class Photo(models.Model):
                 ContentFile(buffer.getvalue()), 
                 save=False
             )
-
+    
         super().save(*args, **kwargs)
 
     def __str__(self):
