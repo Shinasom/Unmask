@@ -16,7 +16,7 @@ class Follow(models.Model):
         'CustomUser',
         on_delete=models.CASCADE,
         related_name='follower_set',
-        help_text='The user being followed'
+        help_text='512-dimensional face encoding vector'
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
