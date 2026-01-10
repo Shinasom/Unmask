@@ -4,7 +4,6 @@
 
 A consent-driven social media platform that puts users in control of their digital identity. Using facial recognition technology, Unmask automatically masks faces in photos and requires explicit approval before revealing them.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11+-green.svg)
 ![Django](https://img.shields.io/badge/django-4.2+-green.svg)
 ![Next.js](https://img.shields.io/badge/next.js-15.4+-black.svg)
