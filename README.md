@@ -81,16 +81,19 @@ frontend/
 │   └── lib/              # API client & utilities
 ```
 
-**Key Technologies:**
 
-- React 19 & Next.js 15.4
-- Tailwind CSS v4
-- Axios for API communication
-- Client-side routing
+**Technologies:**
 
----
-
-## 🚀 Getting Started
+- **Python 3.11+** - Modern Python features
+- **Django 4.2** - Robust web framework
+- **Django REST Framework** - Powerful API toolkit
+- **Django Channels** - WebSocket & async support
+- **PostgreSQL** - Reliable relational database
+- **Redis** - Channel layers for real-time features
+- **InsightFace** - State-of-the-art face recognition (Buffalo-L model)
+- **OpenCV** - Image processing
+- **Pillow** - Image manipulation
+- **JWT** - Secure token-based authentication
 
 ### Prerequisites
 
@@ -346,31 +349,46 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
+## 📄 License
+
+This project is licensed under a **Proprietary License** - see the [LICENSE](LICENSE) file for details.
+
+**All rights reserved.** This code is private and may not be copied, modified, or distributed without explicit written permission from the author.
+
+For permission requests, contact: shinasom@gmail.com
+
+---
 
 ## 👥 Authors
 
-- **Shinas Om** [GitHub](https://github.com/Shinasom) [Linkedin](https://www.linkedin.com/in/shinasom/)
+- **Shinas Om**
+  - [GitHub](https://github.com/Shinasom)
+  - [LinkedIn](https://www.linkedin.com/in/shinasom/)
+  - Email: shinasom@gmail.com
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **face_recognition** library by Adam Geitgey
-- **Next.js** team for the amazing framework
-- **Django REST Framework** for the powerful API toolkit
-- **Tailwind CSS** for the utility-first CSS framework
-- All contributors and testers
+- **InsightFace** - Advanced face recognition models
+- **Adam Geitgey** - Original face_recognition library inspiration
+- **Next.js Team** - Amazing React framework
+- **Django REST Framework** - Powerful API toolkit
+- **Tailwind CSS** - Utility-first CSS framework
+- **Django Channels** - WebSocket & async support
+- **Redis** - Fast in-memory data structure store
+- All contributors and testers who helped improve this project
 
 ---
 
 ## 📊 Project Status
 
 - **Development Status**: Alpha
-- **Current Version**: 0.1.0
-- **Last Updated**: November 2025
+- **Current Version**: 0.2.0
+- **Last Updated**: January 2026
 - **Stability**: Experimental - Not ready for production
+- **Active Development**: Yes
 
----
 
 <p align="center">
   <strong>Built with ❤️ for a more private internet</strong>
